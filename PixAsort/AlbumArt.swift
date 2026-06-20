@@ -19,6 +19,10 @@ final class AlbumArt: Codable {
     var year: Int
     var artist: String
     var album: String
+    /// お気に入りフラグ。`.photos.updateAsset` および UI から切り替える。
+    var isFavorite: Bool
+    /// 非表示フラグ。true の場合は一覧から除外する（`.photos.updateAsset` 対応）。
+    var isHidden: Bool
 
     init(
         uniqueID: UUID = UUID(),
@@ -28,7 +32,9 @@ final class AlbumArt: Codable {
         compactArtwork: String,
         year: Int,
         artist: String,
-        album: String
+        album: String,
+        isFavorite: Bool = false,
+        isHidden: Bool = false
     ) {
         self.uniqueID = uniqueID
         self.title = title
@@ -38,6 +44,8 @@ final class AlbumArt: Codable {
         self.year = year
         self.artist = artist
         self.album = album
+        self.isFavorite = isFavorite
+        self.isHidden = isHidden
     }
 
     // MARK: - Codable
@@ -51,6 +59,8 @@ final class AlbumArt: Codable {
         case year
         case artist
         case album
+        case isFavorite
+        case isHidden
     }
 
     required init(from decoder: Decoder) throws {
@@ -64,6 +74,9 @@ final class AlbumArt: Codable {
         self.year = try container.decode(Int.self, forKey: .year)
         self.artist = try container.decode(String.self, forKey: .artist)
         self.album = try container.decode(String.self, forKey: .album)
+        // 既存 JSON との互換のため、未指定なら false とする。
+        self.isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        self.isHidden = try container.decodeIfPresent(Bool.self, forKey: .isHidden) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
@@ -76,5 +89,7 @@ final class AlbumArt: Codable {
         try container.encode(year, forKey: .year)
         try container.encode(artist, forKey: .artist)
         try container.encode(album, forKey: .album)
+        try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encode(isHidden, forKey: .isHidden)
     }
 }

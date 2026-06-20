@@ -6,12 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 import UniformTypeIdentifiers
 
 /// 単一の `AlbumArt` を表示するビュー。
 /// アートワーク（通常 / コンパクト）をセグメントで切り替えられる。
 struct AlbumArtView: View {
     let albumArt: AlbumArt
+
+    /// お気に入り状態を永続化するためのコンテキスト。
+    @Environment(\.modelContext) private var modelContext
 
     /// 表示するアートワークの種類。
     private enum ArtworkKind: String, CaseIterable, Identifiable {
@@ -76,9 +80,24 @@ struct AlbumArtView: View {
 
             // メタデータ表示。
             VStack(alignment: .leading, spacing: 12) {
-                Text(albumArt.title)
-                    .font(.title2)
-                    .fontWeight(.bold)
+                HStack(spacing: 8) {
+                    Text(albumArt.title)
+                        .font(.title2)
+                        .fontWeight(.bold)
+
+                    if albumArt.isFavorite {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                            .accessibilityLabel("Favorite")
+                    }
+                    if albumArt.isHidden {
+                        // 非表示の AlbumArt であることを示すバッジ。
+                        Label("Hidden", systemImage: "eye.slash")
+                            .labelStyle(.iconOnly)
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel("Hidden")
+                    }
+                }
 
                 LabeledContent("Album", value: albumArt.album)
                 LabeledContent("Genre", value: albumArt.genre)
@@ -89,10 +108,16 @@ struct AlbumArtView: View {
 
             // 機能ボタン。
             HStack(spacing: 12) {
-                Button("RichTextに変換") {
-                    convertToRichText()
+                // お気に入りの切り替え（`.photos.updateAsset` と同じ状態を操作する）。
+                Button {
+                    toggleFavorite()
+                } label: {
+                    Label(
+                        albumArt.isFavorite ? "お気に入り解除" : "お気に入り",
+                        systemImage: albumArt.isFavorite ? "star.fill" : "star"
+                    )
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
 
                 Button {
                     copyImage()
@@ -152,6 +177,13 @@ struct AlbumArtView: View {
         }
 #endif
 
+        popThumbsUp()
+    }
+
+    /// お気に入り状態をトグルし、SwiftData に保存する。
+    private func toggleFavorite() {
+        albumArt.isFavorite.toggle()
+        try? modelContext.save()
         popThumbsUp()
     }
 
