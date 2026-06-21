@@ -18,7 +18,6 @@ enum AppModelContainer {
     /// アプリ全体で共有する `ModelContainer`。
     static let shared: ModelContainer = {
         let schema = Schema([
-            Item.self,
             AlbumArt.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

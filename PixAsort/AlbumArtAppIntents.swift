@@ -16,6 +16,12 @@ import SwiftData
 struct SearchAlbumArtIntent: ShowInAppSearchResultsIntent {
     static let searchScopes: [StringSearchScope] = [.general]
 
+    // 検索結果はアプリ内 UI（ContentView の .searchable）に表示するため、
+    // 実行時にアプリを前面へ起動する。これがないと Intent がバックグラウンド
+    // プロセスで実行され、前面のアプリが観測している AppNavigation.shared に
+    // 反映されず、ショートカット App から「実行できません」となる。
+    static let openAppWhenRun: Bool = true
+
     var criteria: StringSearchCriteria
 
     @MainActor
