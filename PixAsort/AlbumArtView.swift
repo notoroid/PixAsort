@@ -207,6 +207,24 @@ struct AlbumArtView: View {
             UIPasteboard.general.image = uiImage
             popThumbsUp()
         }
+#elseif canImport(AppKit)
+        let nsName = artworkName as NSString
+        let resource = nsName.deletingPathExtension
+        let ext = nsName.pathExtension.isEmpty ? "png" : nsName.pathExtension
+
+        let pasteboard = NSPasteboard.general
+        if let url = Bundle.main.url(forResource: resource, withExtension: ext),
+           let data = try? Data(contentsOf: url) {
+            // 元ファイルのバイト列をそのまま PNG として書き込む（再エンコード・拡大なし）。
+            pasteboard.clearContents()
+            pasteboard.setData(data, forType: NSPasteboard.PasteboardType(UTType.png.identifier))
+            popThumbsUp()
+        } else if let nsImage = NSImage(named: resource) {
+            // フォールバック（バンドルにファイルが見つからない場合）。
+            pasteboard.clearContents()
+            pasteboard.writeObjects([nsImage])
+            popThumbsUp()
+        }
 #endif
     }
 
